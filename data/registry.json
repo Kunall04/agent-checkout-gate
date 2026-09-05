@@ -1,0 +1,38 @@
+{
+  "registry_version": "2026-09-04",
+  "trust_root": "MOCK: local dev CA",
+  "agents": {
+    "agt_shopper_01.k1": {
+      "agent_id": "agt_shopper_01",
+      "key_id": "k1",
+      "alg": "ed25519",
+      "public_key": "wZlfP8oIixeUZ9BwtO5DVVQwa/EcrAPddRmPaqkldsg=",
+      "trust_tier": "B",
+      "status": "active"
+    },
+    "agt_procure_ent.k1": {
+      "agent_id": "agt_procure_ent",
+      "key_id": "k1",
+      "alg": "ed25519",
+      "public_key": "jBKnqyHnUU9GwQ1Q3OwNQ8WTW349kbEpryTJ4wdlnu8=",
+      "trust_tier": "A",
+      "status": "active"
+    },
+    "agt_lowtrust_03.k1": {
+      "agent_id": "agt_lowtrust_03",
+      "key_id": "k1",
+      "alg": "ed25519",
+      "public_key": "pNGMMX+AzLEVU//q1op126DJsetDjqbKSdkWj4AB+xk=",
+      "trust_tier": "C",
+      "status": "active"
+    },
+    "agt_revoked_09.k1": {
+      "agent_id": "agt_revoked_09",
+      "key_id": "k1",
+      "alg": "ed25519",
+      "public_key": "pbbBILKnLUkDgo0xLwHTC5TPcwBRRoOLlweiRwwPmfI=",
+      "trust_tier": "B",
+      "status": "revoked"
+    }
+  }
+}
