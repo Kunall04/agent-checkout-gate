@@ -1,0 +1,75 @@
+# Merchant policy. Deterministic, content-hashed, no LLM anywhere near it.
+#
+# `when`, `observed` and `threshold` are expressions over the fact namespace
+# built by facts.py. `observed`/`threshold` are not in the the project spec §5.1
+# sample but are required by §5.2: they are what makes a decision record
+# counterfactual ("would have passed at tier A") instead of merely narrated.
+#
+# Rules marked ADDED are beyond the four in the the project spec sample; each exists
+# because a red-team scenario in Phase 8 needs it.
+bundle_version: 1
+limits:
+  per_txn_paise: { A: 5000000, B: 250000, C: 50000 }
+  daily_paise:   { A: 20000000, B: 1000000, C: 200000 }
+rules:
+  - id: sig.unverified
+    effect: deny
+    priority: 1
+    when: "not agent.sig_verified"
+    observed: "agent.sig_reason"
+    explain: "Request signature could not be verified against the agent registry."
+
+  - id: intent.unvalidated        # ADDED — §6: LLM output is untrusted, fail closed
+    effect: deny
+    priority: 2
+    when: "intent.parser_status != 'validated'"
+    observed: "intent.parser_status"
+    threshold: "'validated'"
+    explain: "Intent could not be parsed into a schema-valid order; failing closed."
+
+  - id: cart.unfulfillable        # ADDED — unknown SKU, out of stock, qty over per-order max
+    effect: deny
+    priority: 90
+    when: "cart.problem_count > 0"
+    observed: "cart.problem_count"
+    threshold: "0"
+    explain: "Cart contains lines the merchant cannot fulfil as requested."
+
+  - id: cap.per_txn
+    effect: escalate
+    priority: 100
+    when: "cart.total_paise > limits.per_txn_paise[agent.trust_tier]"
+    observed: "cart.total_paise"
+    threshold: "limits.per_txn_paise[agent.trust_tier]"
+    explain: "Cart total exceeds the per-transaction ceiling for this trust tier."
+
+  - id: price.substitution        # ADDED — the headline attack in demo 1 and 2
+    effect: deny
+    priority: 105
+    when: "cart.max_underclaim_bps > 5000"
+    observed: "cart.max_underclaim_bps"
+    threshold: "5000"
+    explain: "Agent claimed a unit price far below catalog truth; priced from catalog and refused."
+
+  - id: velocity.1h
+    effect: deny
+    priority: 110
+    when: "window.txn_count_1h > 10"
+    observed: "window.txn_count_1h"
+    threshold: "10"
+    explain: "Transactions in the last hour exceed the limit of 10."
+
+  - id: cap.daily                 # ADDED — the daily_paise limits above were otherwise unused
+    effect: escalate
+    priority: 115
+    when: "window.spend_24h_paise + cart.total_paise > limits.daily_paise[agent.trust_tier]"
+    observed: "window.spend_24h_paise + cart.total_paise"
+    threshold: "limits.daily_paise[agent.trust_tier]"
+    explain: "This cart would take the agent past its 24-hour spend ceiling."
+
+  - id: category.restricted
+    effect: deny
+    priority: 120
+    when: "cart.has_category('restricted')"
+    observed: "cart.categories"
+    explain: "Cart contains a category this agent is not permitted to purchase."
