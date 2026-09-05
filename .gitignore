@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+.env
+data/gate.db
+data/gate.db-wal
+data/gate.db-shm
+data/keys/
+redteam/results/*.csv
+*.mov
+*.mp4
+CLAUDE.md
